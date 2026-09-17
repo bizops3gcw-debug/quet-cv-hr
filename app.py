@@ -62,16 +62,52 @@ st.markdown(
             transition: all 0.15s ease-in-out;
         }
         
-        /* Cải thiện giao diện Tabs */
+        /* Dàn đều 3 Tabs ra 100% toàn bộ chiều ngang */
         .stTabs [data-baseweb="tab-list"] {
-            gap: 12px;
-            border-bottom: 1px solid #E2E8F0;
+            display: flex !important;
+            width: 100% !important;
+            gap: 12px !important;
+            border-bottom: 2px solid #E2E8F0 !important;
+            padding-bottom: 2px !important;
         }
         .stTabs [data-baseweb="tab"] {
-            border-radius: 8px 8px 0px 0px;
-            padding: 10px 18px;
-            font-weight: 600;
-            font-size: 14px;
+            flex: 1 1 0px !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            text-align: center !important;
+            border-radius: 10px 10px 0px 0px !important;
+            padding: 13px 20px !important;
+            font-weight: 600 !important;
+            font-size: 15px !important;
+            background-color: #F8FAFC !important;
+            border: 1px solid #E2E8F0 !important;
+            border-bottom: none !important;
+            transition: all 0.2s ease-in-out !important;
+        }
+        .stTabs [data-baseweb="tab"]:hover {
+            background-color: #F1F5F9 !important;
+            color: #1E40AF !important;
+        }
+        .stTabs [data-baseweb="tab"][aria-selected="true"] {
+            background-color: #FFFFFF !important;
+            border-color: #CBD5E1 !important;
+            border-bottom: 3px solid #2563EB !important;
+            color: #2563EB !important;
+            font-weight: 700 !important;
+            box-shadow: 0 -2px 8px rgba(37, 99, 235, 0.08) !important;
+        }
+        .stTabs [data-baseweb="tab"] p {
+            margin: 0 !important;
+            font-size: 15px !important;
+            text-align: center !important;
+        }
+        .stTabs [data-baseweb="tab"] > div {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            text-align: center !important;
         }
         
         /* Header của Expander */
