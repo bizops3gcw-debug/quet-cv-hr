@@ -16,6 +16,9 @@ from core.extractor import ResumeExtractor
 from core.batch_processor import BatchProcessor
 from core.exporter import Exporter
 from core.deduplicator import Deduplicator
+import importlib
+import core.google_sheets
+importlib.reload(core.google_sheets)
 from core.google_sheets import GoogleSheetClient
 from core.icons import (
     get_svg_icon,
@@ -471,7 +474,19 @@ def main():
                     if st.button("Đồng bộ toàn bộ lên Google Sheets", icon=":material/cloud_upload:", use_container_width=True):
                         with st.spinner("Đang chuẩn hóa và đồng bộ dữ liệu lên Google Sheets..."):
                             gs_client = GoogleSheetClient(webhook_input)
-                            res = gs_client.reset_and_sync_resumes(st.session_state.resumes)
+                            if hasattr(gs_client, "reset_and_sync_resumes"):
+                                res = gs_client.reset_and_sync_resumes(st.session_state.resumes)
+                            else:
+                                import requests
+                                payload = {
+                                    "action": "reset_and_sync",
+                                    "resumes": [r.to_vietnamese_dict() for r in st.session_state.resumes],
+                                }
+                                try:
+                                    resp = requests.post(webhook_input, json=payload, headers={"Content-Type": "application/json"}, timeout=45, allow_redirects=True)
+                                    res = resp.json() if resp.status_code == 200 else {"status": "error", "message": f"Lỗi HTTP {resp.status_code}"}
+                                except Exception as err:
+                                    res = {"status": "error", "message": str(err)}
                             if res.get("status") == "success":
                                 st.success("Đã đồng bộ toàn bộ dữ liệu chuẩn xác lên Google Sheets!")
                             else:
