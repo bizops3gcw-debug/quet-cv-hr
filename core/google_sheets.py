@@ -83,6 +83,36 @@ class GoogleSheetClient:
             logger.error(f"Lỗi khi đồng bộ Google Sheet: {e}")
             return {"status": "error", "message": str(e)}
 
+    def reset_and_sync_resumes(self, resumes: List[ResumeData]) -> Dict[str, Any]:
+        """
+        Làm mới toàn bộ bảng tính Google Sheets:
+        - Xóa sạch dữ liệu cũ và dòng header cũ.
+        - Khởi tạo Header 27 cột chuẩn.
+        - Đồng bộ toàn bộ danh sách ứng viên vào đúng 27 cột.
+        """
+        if not self.is_configured():
+            return {"status": "error", "message": "Google Sheet Webhook URL chưa được cấu hình."}
+
+        payload = {
+            "action": "reset_and_sync",
+            "resumes": [r.to_vietnamese_dict() for r in resumes],
+        }
+
+        try:
+            resp = requests.post(
+                self.webhook_url,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+                timeout=45,
+                allow_redirects=True,
+            )
+            if resp.status_code == 200:
+                return resp.json()
+            return {"status": "error", "message": f"Lỗi HTTP {resp.status_code}"}
+        except Exception as e:
+            logger.error(f"Lỗi khi reset và đồng bộ Google Sheet: {e}")
+            return {"status": "error", "message": str(e)}
+
     def fetch_resumes(self) -> Tuple[List[ResumeData], Optional[str]]:
         """
         Tải toàn bộ danh sách ứng viên hiện có từ Google Sheet về hệ thống.

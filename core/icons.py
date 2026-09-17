@@ -156,3 +156,4 @@ def render_card_title_html(icon_name: str, title: str, color_hex: str = "#2563EB
         <span>{title}</span>
     </div>
     """
+

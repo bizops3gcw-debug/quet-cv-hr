@@ -63,21 +63,26 @@ st.markdown(
         }
         
         /* Dàn đều 3 Tabs ra 100% toàn bộ chiều ngang */
-        .stTabs [data-baseweb="tab-list"] {
+        div[data-baseweb="tab-list"],
+        div[role="tablist"],
+        [data-testid="stTabs"] > div:first-child {
             display: flex !important;
             width: 100% !important;
-            gap: 12px !important;
+            gap: 10px !important;
             border-bottom: 2px solid #E2E8F0 !important;
             padding-bottom: 2px !important;
         }
-        .stTabs [data-baseweb="tab"] {
+        button[data-baseweb="tab"],
+        button[role="tab"],
+        [data-testid="stTabsTab"] {
             flex: 1 1 0px !important;
-            display: flex !important;
+            width: 100% !important;
+            display: inline-flex !important;
             justify-content: center !important;
             align-items: center !important;
             text-align: center !important;
             border-radius: 10px 10px 0px 0px !important;
-            padding: 13px 20px !important;
+            padding: 14px 16px !important;
             font-weight: 600 !important;
             font-size: 15px !important;
             background-color: #F8FAFC !important;
@@ -85,11 +90,13 @@ st.markdown(
             border-bottom: none !important;
             transition: all 0.2s ease-in-out !important;
         }
-        .stTabs [data-baseweb="tab"]:hover {
+        button[data-baseweb="tab"]:hover,
+        button[role="tab"]:hover {
             background-color: #F1F5F9 !important;
             color: #1E40AF !important;
         }
-        .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        button[data-baseweb="tab"][aria-selected="true"],
+        button[role="tab"][aria-selected="true"] {
             background-color: #FFFFFF !important;
             border-color: #CBD5E1 !important;
             border-bottom: 3px solid #2563EB !important;
@@ -97,12 +104,16 @@ st.markdown(
             font-weight: 700 !important;
             box-shadow: 0 -2px 8px rgba(37, 99, 235, 0.08) !important;
         }
-        .stTabs [data-baseweb="tab"] p {
-            margin: 0 !important;
+        button[data-baseweb="tab"] p,
+        button[role="tab"] p,
+        [data-testid="stTabsTab"] p {
+            margin: 0 auto !important;
             font-size: 15px !important;
             text-align: center !important;
+            width: 100% !important;
         }
-        .stTabs [data-baseweb="tab"] > div {
+        button[data-baseweb="tab"] > div,
+        button[role="tab"] > div {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -267,6 +278,25 @@ def main():
             unsafe_allow_html=True,
         )
 
+    # Đảm bảo 3 tab dàn đều 100% chiều ngang bằng st.html
+    st.html("""
+        <style>
+            div[data-baseweb="tab-list"] {
+                display: flex !important;
+                width: 100% !important;
+                gap: 12px !important;
+            }
+            button[data-baseweb="tab"] {
+                flex: 1 1 0% !important;
+                width: 100% !important;
+                display: inline-flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                text-align: center !important;
+            }
+        </style>
+    """)
+
     # 3 Tabs chức năng với Icon Material Symbols đồng bộ
     tab1, tab2, tab3 = st.tabs([
         ":material/upload_file: 1. Tải Lên & Quét Hàng Loạt",
@@ -379,8 +409,19 @@ def main():
         if not st.session_state.resumes:
             st.info("Chưa có dữ liệu ứng viên. Vui lòng tải hồ sơ lên ở Tab 1 và bấm bắt đầu quét.")
         else:
-            tb_col1, tb_col2, tb_col3 = st.columns([2, 2, 4])
+            tb_col1, tb_col2, tb_col3 = st.columns([3, 3, 3])
             with tb_col1:
+                if webhook_input:
+                    if st.button("Làm mới & Đồng bộ 27 cột lên Sheet", icon=":material/sync_saved_locally:"):
+                        with st.spinner("Đang chuẩn hóa và đồng bộ 27 cột lên Google Sheets..."):
+                            gs_client = GoogleSheetClient(webhook_input)
+                            res = gs_client.reset_and_sync_resumes(st.session_state.resumes)
+                            if res.get("status") == "success":
+                                st.success("Đã làm mới dòng tiêu đề 27 cột và đồng bộ dữ liệu chuẩn xác lên Google Sheets!")
+                            else:
+                                st.warning(f"Lỗi: {res.get('message')}")
+
+            with tb_col2:
                 if webhook_input:
                     if st.button("Tải lại từ Google Sheets", icon=":material/cloud_download:"):
                         with st.spinner("Đang kết nối tải dữ liệu từ Google Sheets..."):
@@ -395,7 +436,7 @@ def main():
                                 st.success(f"Đã đồng bộ {len(remote_resumes)} dòng từ Google Sheets!")
                                 st.rerun()
 
-            with tb_col2:
+            with tb_col3:
                 if st.button("Quét sạch bản ghi trùng", icon=":material/auto_fix_high:"):
                     clean_resumes, dup_count = Deduplicator.deduplicate_resumes(st.session_state.resumes)
                     st.session_state.resumes = clean_resumes

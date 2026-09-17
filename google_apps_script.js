@@ -86,19 +86,51 @@ function doPost(e) {
     }
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    
-    // 1. Nếu Sheet trống, tự động tạo Header định dạng đẹp
-    if (sheet.getLastRow() === 0) {
+    const action = payload.action || "append";
+
+    // 1. NẾU LÀ ACTION LÀM MỚI TOÀN BỘ (RESET & SYNC)
+    if (action === "reset_and_sync") {
+      sheet.clear();
       sheet.appendRow(HEADERS);
-      const headerRange = sheet.getRange(1, 1, 1, HEADERS.length);
-      headerRange.setBackground("#1F4E78");
-      headerRange.setFontColor("#FFFFFF");
-      headerRange.setFontWeight("bold");
-      headerRange.setHorizontalAlignment("center");
-      sheet.setFrozenRows(1);
+      formatHeader(sheet);
+
+      let addedCount = 0;
+      for (let i = 0; i < resumes.length; i++) {
+        const r = resumes[i];
+        const rowData = HEADERS.map(col => {
+          const val = r[col];
+          return (val !== undefined && val !== null && String(val).trim() !== "") ? String(val).trim() : "Không có thông tin cụ thể";
+        });
+        sheet.appendRow(rowData);
+        addedCount++;
+      }
+
+      formatDataCells(sheet);
+
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        action: "reset_and_sync",
+        added: addedCount,
+        total_rows: sheet.getLastRow(),
+        message: "Đã làm mới toàn bộ bảng tính và đồng bộ 27 cột thành công!"
+      })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // 2. Đọc dữ liệu hiện có để chống trùng lặp (theo SĐT và Email)
+    // 2. NẾU LÀ ACTION APPEND BÌNH THƯỜNG
+    // Nếu sheet trống hoặc số cột ở dòng 1 chưa đủ 27 cột chuẩn -> Cập nhật Header
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(HEADERS);
+      formatHeader(sheet);
+    } else {
+      const currentCols = sheet.getLastColumn();
+      if (currentCols < HEADERS.length) {
+        // Tự động nâng cấp dòng 1 lên 27 cột chuẩn
+        sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+        formatHeader(sheet);
+      }
+    }
+
+    // Đọc dữ liệu hiện có để chống trùng lặp (theo SĐT và Email)
     const existingData = sheet.getDataRange().getValues();
     const existingPhones = new Set();
     const existingEmails = new Set();
@@ -115,7 +147,7 @@ function doPost(e) {
     let duplicateCount = 0;
     const skippedDetails = [];
 
-    // 3. Thêm các ứng viên không bị trùng
+    // Thêm các ứng viên không bị trùng
     for (let i = 0; i < resumes.length; i++) {
       const r = resumes[i];
       const phone = cleanPhone(String(r["Số điện thoại"] || ""));
@@ -149,12 +181,7 @@ function doPost(e) {
       }
     }
 
-    // Tự động giãn dòng ô tùy theo độ dài văn bản (Wrap text) và căn trên (Top) cho dễ nhìn
-    if (sheet.getLastRow() > 1) {
-      sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length)
-           .setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP)
-           .setVerticalAlignment("top");
-    }
+    formatDataCells(sheet);
 
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
@@ -179,5 +206,22 @@ function cleanPhone(str) {
     digits = "0" + digits.substring(2);
   }
   return digits;
+}
+
+function formatHeader(sheet) {
+  const headerRange = sheet.getRange(1, 1, 1, HEADERS.length);
+  headerRange.setBackground("#1F4E78");
+  headerRange.setFontColor("#FFFFFF");
+  headerRange.setFontWeight("bold");
+  headerRange.setHorizontalAlignment("center");
+  sheet.setFrozenRows(1);
+}
+
+function formatDataCells(sheet) {
+  if (sheet.getLastRow() > 1) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length)
+         .setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP)
+         .setVerticalAlignment("top");
+  }
 }
 
