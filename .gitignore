@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Secrets & Environment
+.env
+.streamlit/secrets.toml
+
+# Temp files
+temp/
+*.log
+
+# Candidate CVs (Privacy & Security)
+input_cvs/
+
