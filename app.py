@@ -63,26 +63,36 @@ st.markdown(
         }
         
         /* Dàn đều 3 Tabs ra 100% toàn bộ chiều ngang */
+        [data-testid="stTabs"] {
+            width: 100% !important;
+        }
+        [data-testid="stTabs"] > div {
+            width: 100% !important;
+        }
+        [data-testid="stTabs"] div[role="tablist"],
         div[data-baseweb="tab-list"],
-        div[role="tablist"],
-        [data-testid="stTabs"] > div:first-child {
+        .stTabs [data-baseweb="tab-list"] {
             display: flex !important;
             width: 100% !important;
-            gap: 10px !important;
+            min-width: 100% !important;
+            gap: 8px !important;
             border-bottom: 2px solid #E2E8F0 !important;
             padding-bottom: 2px !important;
         }
+        [data-testid="stTabs"] button[role="tab"],
+        [data-testid="stTabs"] button[data-baseweb="tab"],
         button[data-baseweb="tab"],
         button[role="tab"],
-        [data-testid="stTabsTab"] {
-            flex: 1 1 0px !important;
-            width: 100% !important;
+        [data-testid="stTab"] {
+            flex: 1 1 0% !important;
+            width: 33.333% !important;
+            min-width: 0 !important;
             display: inline-flex !important;
             justify-content: center !important;
             align-items: center !important;
             text-align: center !important;
             border-radius: 10px 10px 0px 0px !important;
-            padding: 14px 16px !important;
+            padding: 12px 16px !important;
             font-weight: 600 !important;
             font-size: 15px !important;
             background-color: #F8FAFC !important;
@@ -91,12 +101,14 @@ st.markdown(
             transition: all 0.2s ease-in-out !important;
         }
         button[data-baseweb="tab"]:hover,
-        button[role="tab"]:hover {
+        button[role="tab"]:hover,
+        [data-testid="stTab"]:hover {
             background-color: #F1F5F9 !important;
             color: #1E40AF !important;
         }
         button[data-baseweb="tab"][aria-selected="true"],
-        button[role="tab"][aria-selected="true"] {
+        button[role="tab"][aria-selected="true"],
+        [data-testid="stTab"][aria-selected="true"] {
             background-color: #FFFFFF !important;
             border-color: #CBD5E1 !important;
             border-bottom: 3px solid #2563EB !important;
@@ -104,14 +116,17 @@ st.markdown(
             font-weight: 700 !important;
             box-shadow: 0 -2px 8px rgba(37, 99, 235, 0.08) !important;
         }
+        [data-testid="stTabs"] button[role="tab"] p,
+        [data-testid="stTabs"] button[data-baseweb="tab"] p,
         button[data-baseweb="tab"] p,
         button[role="tab"] p,
-        [data-testid="stTabsTab"] p {
+        [data-testid="stTab"] p {
             margin: 0 auto !important;
             font-size: 15px !important;
             text-align: center !important;
             width: 100% !important;
         }
+        [data-testid="stTabs"] button[role="tab"] > div,
         button[data-baseweb="tab"] > div,
         button[role="tab"] > div {
             display: flex !important;
@@ -278,24 +293,64 @@ def main():
             unsafe_allow_html=True,
         )
 
-    # Đảm bảo 3 tab dàn đều 100% chiều ngang bằng st.html
+    # Đảm bảo 3 tab dàn đều 100% chiều ngang bằng st.html và JS trực tiếp
     st.html("""
         <style>
-            div[data-baseweb="tab-list"] {
+            [data-testid="stTabs"] {
+                width: 100% !important;
+            }
+            [data-testid="stTabs"] > div {
+                width: 100% !important;
+            }
+            [data-testid="stTabs"] div[role="tablist"],
+            div[data-baseweb="tab-list"],
+            .stTabs [data-baseweb="tab-list"] {
                 display: flex !important;
                 width: 100% !important;
-                gap: 12px !important;
+                min-width: 100% !important;
+                gap: 8px !important;
             }
-            button[data-baseweb="tab"] {
+            [data-testid="stTabs"] button[role="tab"],
+            [data-testid="stTabs"] button[data-baseweb="tab"],
+            .stTabs button[data-baseweb="tab"],
+            [data-testid="stTab"] {
                 flex: 1 1 0% !important;
-                width: 100% !important;
+                width: 33.333% !important;
+                min-width: 0 !important;
                 display: inline-flex !important;
                 justify-content: center !important;
                 align-items: center !important;
                 text-align: center !important;
             }
+            [data-testid="stTabs"] button[role="tab"] p,
+            [data-testid="stTabs"] button[data-baseweb="tab"] p,
+            [data-testid="stTab"] p {
+                margin: 0 auto !important;
+                text-align: center !important;
+                width: 100% !important;
+            }
         </style>
-    """)
+        <script>
+            function stretchTabsNow() {
+                const tabLists = document.querySelectorAll('[data-testid="stTabs"] div[role="tablist"], [data-testid="stTabs"] div[data-baseweb="tab-list"], div[data-baseweb="tab-list"]');
+                tabLists.forEach(tl => {
+                    tl.style.setProperty('width', '100%', 'important');
+                    tl.style.setProperty('display', 'flex', 'important');
+                    const tabs = tl.querySelectorAll('button[role="tab"], button[data-baseweb="tab"], [data-testid="stTab"]');
+                    tabs.forEach(tab => {
+                        tab.style.setProperty('flex', '1 1 0%', 'important');
+                        tab.style.setProperty('width', '33.333%', 'important');
+                        tab.style.setProperty('justify-content', 'center', 'important');
+                        tab.style.setProperty('text-align', 'center', 'important');
+                    });
+                });
+            }
+            stretchTabsNow();
+            setTimeout(stretchTabsNow, 150);
+            setTimeout(stretchTabsNow, 600);
+            setTimeout(stretchTabsNow, 1500);
+        </script>
+    """, unsafe_allow_javascript=True)
 
     # 3 Tabs chức năng với Icon Material Symbols đồng bộ
     tab1, tab2, tab3 = st.tabs([
@@ -409,10 +464,11 @@ def main():
         if not st.session_state.resumes:
             st.info("Chưa có dữ liệu ứng viên. Vui lòng tải hồ sơ lên ở Tab 1 và bấm bắt đầu quét.")
         else:
-            tb_col1, tb_col2, tb_col3 = st.columns([3, 3, 3])
+            # Thanh công cụ đồng bộ (Căn giữa cân đối, loại bỏ các nút dư thừa)
+            _, tb_col1, tb_col2, _ = st.columns([1.5, 2.5, 2.5, 1.5])
             with tb_col1:
                 if webhook_input:
-                    if st.button("Làm mới & Đồng bộ 27 cột lên Sheet", icon=":material/sync_saved_locally:"):
+                    if st.button("Làm mới & Đồng bộ 27 cột lên Sheet", icon=":material/sync_saved_locally:", use_container_width=True):
                         with st.spinner("Đang chuẩn hóa và đồng bộ 27 cột lên Google Sheets..."):
                             gs_client = GoogleSheetClient(webhook_input)
                             res = gs_client.reset_and_sync_resumes(st.session_state.resumes)
@@ -420,10 +476,12 @@ def main():
                                 st.success("Đã làm mới dòng tiêu đề 27 cột và đồng bộ dữ liệu chuẩn xác lên Google Sheets!")
                             else:
                                 st.warning(f"Lỗi: {res.get('message')}")
+                else:
+                    st.caption("ℹ️ Cấu hình Webhook ở cột trái để đồng bộ Google Sheet")
 
             with tb_col2:
                 if webhook_input:
-                    if st.button("Tải lại từ Google Sheets", icon=":material/cloud_download:"):
+                    if st.button("Tải lại từ Google Sheets", icon=":material/cloud_download:", use_container_width=True):
                         with st.spinner("Đang kết nối tải dữ liệu từ Google Sheets..."):
                             gs_client = GoogleSheetClient(webhook_input)
                             remote_resumes, err = gs_client.fetch_resumes()
@@ -435,14 +493,6 @@ def main():
                                 Exporter.export_excel(st.session_state.resumes, "ket_qua_quet_cv.xlsx")
                                 st.success(f"Đã đồng bộ {len(remote_resumes)} dòng từ Google Sheets!")
                                 st.rerun()
-
-            with tb_col3:
-                if st.button("Quét sạch bản ghi trùng", icon=":material/auto_fix_high:"):
-                    clean_resumes, dup_count = Deduplicator.deduplicate_resumes(st.session_state.resumes)
-                    st.session_state.resumes = clean_resumes
-                    Exporter.export_excel(st.session_state.resumes, "ket_qua_quet_cv.xlsx")
-                    st.success(f"Đã loại bỏ {dup_count} bản ghi trùng lặp!")
-                    st.rerun()
 
             df = Exporter.to_dataframe(st.session_state.resumes)
 

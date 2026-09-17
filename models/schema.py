@@ -230,14 +230,27 @@ class ResumeData(BaseModel):
         elif gender_raw in ["female", "nữ", "nu", "f"]:
             cleaned["gender"] = "Nữ"
 
-        # Chuẩn hóa Ngôn ngữ CV
-        lang_raw = str(cleaned.get("cv_language", "")).lower()
-        if any(x in lang_raw for x in ["việt", "vietnamese", "tiếng việt"]):
+        # Chuẩn hóa Ngôn ngữ CV & Phòng vệ dữ liệu xô lệch
+        lang_raw = str(cleaned.get("cv_language", "")).strip()
+        # Nếu cv_language bị dính text chứng chỉ dài (do xô lệch cột từ trước)
+        if any(w in lang_raw.lower() for w in ["chứng chỉ", "certificate", "mos", "aptis", "tin học", "toeic", "ielts", "b1", "b2"]) or len(lang_raw) > 20:
             cleaned["cv_language"] = "Tiếng Việt"
-        elif any(x in lang_raw for x in ["anh", "english", "tiếng anh"]):
+        elif any(x in lang_raw.lower() for x in ["việt", "vietnamese", "tiếng việt"]):
+            cleaned["cv_language"] = "Tiếng Việt"
+        elif any(x in lang_raw.lower() for x in ["anh", "english", "tiếng anh"]):
             cleaned["cv_language"] = "Tiếng Anh"
-        elif any(x in lang_raw for x in ["bilingual", "song ngữ", "song ngu"]):
+        elif any(x in lang_raw.lower() for x in ["bilingual", "song ngữ", "song ngu"]):
             cleaned["cv_language"] = "Song ngữ"
+        elif cleaned.get("cv_language") == DEFAULT_MISSING_VALUE:
+            cleaned["cv_language"] = "Tiếng Việt"
+
+        # Chuẩn hóa Mức lương mong muốn & Phòng vệ dữ liệu xô lệch
+        salary_raw = str(cleaned.get("expected_salary", "")).strip()
+        # Nếu expected_salary bị nhầm với chứng chỉ ngoại ngữ
+        if any(w in salary_raw.lower() for w in ["aptis", "toeic", "ielts", "b1", "b2", "mos", "tin học", "chứng chỉ", "tiếng anh"]):
+            cleaned["expected_salary"] = DEFAULT_MISSING_VALUE
+        elif salary_raw.lower() in ["none", "null", "n/a", "thỏa thuận"]:
+            cleaned["expected_salary"] = "Thỏa thuận" if "thỏa thuận" in salary_raw.lower() else DEFAULT_MISSING_VALUE
 
         # Chuẩn hóa Trình độ học vấn phổ biến
         degree_raw = str(cleaned.get("highest_degree", "")).lower()
