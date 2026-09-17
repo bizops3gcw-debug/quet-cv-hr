@@ -464,16 +464,16 @@ def main():
         if not st.session_state.resumes:
             st.info("Chưa có dữ liệu ứng viên. Vui lòng tải hồ sơ lên ở Tab 1 và bấm bắt đầu quét.")
         else:
-            # Thanh công cụ đồng bộ (Căn giữa cân đối, loại bỏ các nút dư thừa)
+            # Thanh công cụ đồng bộ (Căn giữa cân đối, thân thiện người dùng)
             _, tb_col1, tb_col2, _ = st.columns([1.5, 2.5, 2.5, 1.5])
             with tb_col1:
                 if webhook_input:
-                    if st.button("Làm mới & Đồng bộ 27 cột lên Sheet", icon=":material/sync_saved_locally:", use_container_width=True):
-                        with st.spinner("Đang chuẩn hóa và đồng bộ 27 cột lên Google Sheets..."):
+                    if st.button("Đồng bộ toàn bộ lên Google Sheets", icon=":material/cloud_upload:", use_container_width=True):
+                        with st.spinner("Đang chuẩn hóa và đồng bộ dữ liệu lên Google Sheets..."):
                             gs_client = GoogleSheetClient(webhook_input)
                             res = gs_client.reset_and_sync_resumes(st.session_state.resumes)
                             if res.get("status") == "success":
-                                st.success("Đã làm mới dòng tiêu đề 27 cột và đồng bộ dữ liệu chuẩn xác lên Google Sheets!")
+                                st.success("Đã đồng bộ toàn bộ dữ liệu chuẩn xác lên Google Sheets!")
                             else:
                                 st.warning(f"Lỗi: {res.get('message')}")
                 else:
@@ -481,7 +481,7 @@ def main():
 
             with tb_col2:
                 if webhook_input:
-                    if st.button("Tải lại từ Google Sheets", icon=":material/cloud_download:", use_container_width=True):
+                    if st.button("Tải dữ liệu từ Google Sheets", icon=":material/cloud_download:", use_container_width=True):
                         with st.spinner("Đang kết nối tải dữ liệu từ Google Sheets..."):
                             gs_client = GoogleSheetClient(webhook_input)
                             remote_resumes, err = gs_client.fetch_resumes()

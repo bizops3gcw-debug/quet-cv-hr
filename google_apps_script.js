@@ -49,6 +49,17 @@ const HEADERS = [
 function doGet(e) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    
+    // Tự động chữa lành dòng 1 (Self-Healing Header): Nếu dòng 1 chưa đủ hoặc không khớp 27 cột
+    if (sheet.getLastRow() > 0) {
+      const currentCols = sheet.getLastColumn();
+      const firstRow = sheet.getRange(1, 1, 1, Math.max(currentCols, HEADERS.length)).getValues()[0];
+      if (currentCols < HEADERS.length || firstRow[10] !== HEADERS[10]) {
+        sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+        formatHeader(sheet);
+      }
+    }
+
     const data = sheet.getDataRange().getValues();
     
     if (data.length <= 1) {
@@ -123,7 +134,8 @@ function doPost(e) {
       formatHeader(sheet);
     } else {
       const currentCols = sheet.getLastColumn();
-      if (currentCols < HEADERS.length) {
+      const firstRow = sheet.getRange(1, 1, 1, Math.max(currentCols, HEADERS.length)).getValues()[0];
+      if (currentCols < HEADERS.length || firstRow[10] !== HEADERS[10]) {
         // Tự động nâng cấp dòng 1 lên 27 cột chuẩn
         sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
         formatHeader(sheet);
